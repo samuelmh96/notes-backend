@@ -39,8 +39,6 @@ php artisan migrate
 php artisan serve
 ```
 
-La API estará disponible en `http://localhost:8000`
-
 ## 🏗️ Estructura de la base de datos
 
 ### Tabla: notes
@@ -194,33 +192,3 @@ php artisan route:list
 
 Este backend funciona con el frontend Vue:
 - Repositorio: https://github.com/samuelmh96/notes-frontend
-
-## 📝 Próximas características
-
-- [ ] Autenticación de usuarios con Sanctum
-- [ ] Filtrado de notas por tags
-- [ ] Búsqueda de notas
-- [ ] Paginación de resultados
-- [ ] Validaciones más robustas
-- [ ] Tests unitarios y de integración
-
-## 🛠️ Troubleshooting
-
-### Error de permisos en SQLite
-```bash
-chmod 664 database/database.sqlite
-chmod 775 database/
-```
-
-### Regenerar base de datos
-```bash
-php artisan migrate:fresh
-```
-
-## 👨‍💻 Autor
-
-https://github.com/samuelmh96/
-
-## 📄 Licencia
-
-Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
