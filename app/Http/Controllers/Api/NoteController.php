@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Note;
 use Illuminate\Http\Request;
+use Mockery\Matcher\Not;
 
 class NoteController extends Controller
 {
@@ -25,16 +26,16 @@ class NoteController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'tags' => 'array',
+            'tags' => 'array'
         ]);
 
         $note = Note::create([
             'title' => $validated['title'],
-            'content' => $validated['content'],
+            'content' => $validated['content']
         ]);
 
-        if (!empty($validated['tags'])) {
-            $note->tags()->attach($validated['tags']);
+        if (isset($validated['tags'])) {
+            $note->tags()->sync($validated['tags']);
         }
 
         return response()->json($note->load('tags'), 201);
@@ -43,24 +44,40 @@ class NoteController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Note $note)
     {
-        //
+         return response()->json($note->load('tags'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Note $note)
     {
-        //
+         $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'tags' => 'array'
+        ]);
+
+        $note->update([
+            'title' => $validated['title'],
+            'content' => $validated['content']
+        ]);
+
+        if (isset($validated['tags'])) {
+            $note->tags()->sync($validated['tags']);
+        }
+
+        return response()->json($note->load('tags'));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Note $note)
     {
-        //
+         $note->delete();
+        return response()->json(['message' => 'Note deleted successfully'], 200);
     }
 }
