@@ -12,9 +12,28 @@ class NoteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $notes = Note::with('tags')->latest()->get();
+        $query = Note::with('tags');
+
+        // Búsqueda por título o contenido
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtro por tag
+        if ($request->has('tag')) {
+            $tagId = $request->input('tag');
+            $query->whereHas('tags', function($q) use ($tagId) {
+                $q->where('tags.id', $tagId);
+            });
+        }
+
+        $notes = $query->latest()->get();
         return response()->json($notes);
     }
 
