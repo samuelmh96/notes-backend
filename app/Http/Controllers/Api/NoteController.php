@@ -19,16 +19,16 @@ class NoteController extends Controller
         // Búsqueda por título o contenido
         if ($request->has('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
         // Filtro por tag
         if ($request->has('tag')) {
             $tagId = $request->input('tag');
-            $query->whereHas('tags', function($q) use ($tagId) {
+            $query->whereHas('tags', function ($q) use ($tagId) {
                 $q->where('tags.id', $tagId);
             });
         }
@@ -42,22 +42,32 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'tags' => 'array'
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'tags' => 'array'
+            ]);
 
-        $note = Note::create([
-            'title' => $validated['title'],
-            'content' => $validated['content']
-        ]);
+            $note = Note::create([
+                'title' => $validated['title'],
+                'content' => $validated['content']
+            ]);
 
-        if (isset($validated['tags'])) {
-            $note->tags()->sync($validated['tags']);
+            if (isset($validated['tags'])) {
+                $note->tags()->sync($validated['tags']);
+            }
+
+            return response()->json([
+                'message' => 'Nota creada exitosamente',
+                'note' => $note->load('tags')
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al crear la nota',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($note->load('tags'), 201);
     }
 
     /**
@@ -65,7 +75,7 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
-         return response()->json($note->load('tags'));
+        return response()->json($note->load('tags'));
     }
 
     /**
@@ -73,22 +83,32 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
-         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'tags' => 'array'
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'tags' => 'array'
+            ]);
 
-        $note->update([
-            'title' => $validated['title'],
-            'content' => $validated['content']
-        ]);
+            $note->update([
+                'title' => $validated['title'],
+                'content' => $validated['content']
+            ]);
 
-        if (isset($validated['tags'])) {
-            $note->tags()->sync($validated['tags']);
+            if (isset($validated['tags'])) {
+                $note->tags()->sync($validated['tags']);
+            }
+
+            return response()->json([
+                'message' => 'Nota actualizada exitosamente',
+                'note' => $note->load('tags')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al actualizar la nota',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($note->load('tags'));
     }
 
     /**
@@ -96,7 +116,7 @@ class NoteController extends Controller
      */
     public function destroy(Note $note)
     {
-         $note->delete();
+        $note->delete();
         return response()->json(['message' => 'Note deleted successfully'], 200);
     }
 }
