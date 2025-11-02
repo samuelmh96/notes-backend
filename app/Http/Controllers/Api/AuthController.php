@@ -77,4 +77,55 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    public function updateProfile(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $request->user()->update($validated);
+
+        return response()->json([
+            'message' => 'Perfil actualizado exitosamente',
+            'user' => $request->user()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error al actualizar perfil',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function updatePassword(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!Hash::check($validated['current_password'], $request->user()->password)) {
+            return response()->json([
+                'message' => 'La contraseña actual es incorrecta'
+            ], 422);
+        }
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password'])
+        ]);
+
+        return response()->json([
+            'message' => 'Contraseña actualizada exitosamente'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error al actualizar contraseña',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }
