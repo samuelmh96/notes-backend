@@ -20,5 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Mover las rutas existentes dentro de este grupo
     Route::apiResource('notes', NoteController::class);
+    Route::post('/notes/{note}/toggle-favorite', [NoteController::class, 'toggleFavorite']);
+    
     Route::apiResource('tags', TagController::class)->only(['index', 'store']);
 });

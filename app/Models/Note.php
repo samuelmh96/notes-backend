@@ -9,7 +9,7 @@ class Note extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'user_id']; 
+    protected $fillable = ['title', 'content', 'user_id', 'is_favorite']; 
 
     // función para la relación muchos a muchos con Tag
     public function tags()

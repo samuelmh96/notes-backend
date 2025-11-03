@@ -14,8 +14,8 @@ class NoteController extends Controller
      */
     public function index(Request $request)
     {
-         $query = Note::with('tags')
-        ->where('user_id', $request->user()->id);  // Solo notas del usuario
+        $query = Note::with('tags')
+        ->where('user_id', $request->user()->id);
 
     // Búsqueda por título o contenido
     if ($request->has('search')) {
@@ -34,7 +34,35 @@ class NoteController extends Controller
         });
     }
 
-    $notes = $query->latest()->get();
+    // Filtro por favoritas
+    if ($request->has('favorites') && $request->input('favorites') == 'true') {
+        $query->where('is_favorite', true);
+    }
+
+    // Ordenamiento
+    $sortBy = $request->input('sort', 'date_desc');
+    
+    switch ($sortBy) {
+        case 'date_asc':
+            $query->oldest();
+            break;
+        case 'date_desc':
+            $query->latest();
+            break;
+        case 'title_asc':
+            $query->orderBy('title', 'asc');
+            break;
+        case 'title_desc':
+            $query->orderBy('title', 'desc');
+            break;
+        case 'favorites':
+            $query->orderBy('is_favorite', 'desc')->latest();
+            break;
+        default:
+            $query->latest();
+    }
+
+    $notes = $query->get();
     return response()->json($notes);
     }
 
@@ -142,4 +170,23 @@ class NoteController extends Controller
     $note->delete();
     return response()->json(['message' => 'Note deleted successfully'], 200);
     }
+
+    public function toggleFavorite(Request $request, Note $note)
+{
+    // Verificar que la nota pertenece al usuario
+    if ($note->user_id !== $request->user()->id) {
+        return response()->json([
+            'message' => 'No tienes permiso para modificar esta nota'
+        ], 403);
+    }
+
+    $note->update([
+        'is_favorite' => !$note->is_favorite
+    ]);
+
+    return response()->json([
+        'message' => $note->is_favorite ? 'Nota marcada como favorita' : 'Nota desmarcada como favorita',
+        'note' => $note->load('tags')
+    ]);
+}
 }
